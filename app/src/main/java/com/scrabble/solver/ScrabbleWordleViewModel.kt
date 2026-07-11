@@ -17,7 +17,7 @@ class ScrabbleWordleViewModel @Inject constructor(
 ) : ViewModel() {
 
     // ── Word list (loaded off the main thread) ────────────────────────
-    private val _wordList = MutableStateFlow<List<String>>(emptyList())
+    private var wordList: List<String> = emptyList()
 
     private val _loadState = MutableStateFlow<LoadState>(LoadState.Loading)
     val loadState: StateFlow<LoadState> = _loadState.asStateFlow()
@@ -32,7 +32,7 @@ class ScrabbleWordleViewModel @Inject constructor(
     init {
         viewModelScope.launch(Dispatchers.IO) {
             val words = wordListLoader.load()
-            _wordList.value = words
+            wordList = words
             _loadState.value = LoadState.Ready
         }
     }
@@ -46,7 +46,7 @@ class ScrabbleWordleViewModel @Inject constructor(
         excluded: Set<Char>,
         positionExclusions: List<Set<Char>>,
     ) {
-        val words = _wordList.value.ifEmpty { return }
+        val words = wordList.ifEmpty { return }
         viewModelScope.launch(Dispatchers.Default) {
             val solved = solver.solve(words, targetScore, exact, mustContain, excluded, positionExclusions)
             _results.value = solved
